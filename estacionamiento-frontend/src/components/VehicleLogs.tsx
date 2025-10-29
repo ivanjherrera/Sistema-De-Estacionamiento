@@ -58,7 +58,6 @@ const VehicleLogs: React.FC = () => {
 
   const plateValue = watch("plate");
 
-  // Cargar vehículos al montar el componente
   useEffect(() => {
     fetchVehicles();
   }, []);
@@ -110,8 +109,6 @@ const VehicleLogs: React.FC = () => {
       
       alert(response.data?.message ?? "Entrada registrada correctamente");
       reset();
-      
-      // Recargar lista de vehículos
       await fetchVehicles();
     } catch (err: any) {
       const msg =
@@ -123,7 +120,6 @@ const VehicleLogs: React.FC = () => {
     }
   };
 
-  // Filtrar vehículos por placa
   const handleExit = async (plate: string) => {
     const confirmExit = window.confirm(
       `¿Registrar salida del vehículo ${plate}?`
@@ -152,24 +148,22 @@ const VehicleLogs: React.FC = () => {
 
       const { record } = response.data;
 
-      // Crear mensaje detallado con la información del cobro
       const message = `
+SALIDA REGISTRADA EXITOSAMENTE
 
-     Placa: ${record.plate}
-     Tipo: ${getVehicleTypeLabel(record.type)}
+Placa: ${record.plate}
+Tipo: ${getVehicleTypeLabel(record.type)}
 
-     Entrada: ${new Date(record.entryTime).toLocaleString("es-HN")}
-     Salida: ${new Date(record.exitTime).toLocaleString("es-HN")}
+Entrada: ${new Date(record.entryTime).toLocaleString("es-HN")}
+Salida: ${new Date(record.exitTime).toLocaleString("es-HN")}
 
-    Tiempo: ${record.duration.hours}h ${record.duration.minutes}min
-     Horas cobradas: ${record.hoursCharged}
+Tiempo: ${record.duration.hours}h ${record.duration.minutes}min
+Horas cobradas: ${record.hoursCharged}
 
-💰 TOTAL A PAGAR: ${record.totalFee.toFixed(2)} USD
+TOTAL A PAGAR: $${record.totalFee.toFixed(2)} USD
       `.trim();
 
       alert(message);
-
-      // Recargar la lista de vehículos
       await fetchVehicles();
     } catch (err: any) {
       const msg =
@@ -180,10 +174,6 @@ const VehicleLogs: React.FC = () => {
       console.error("Error completo:", err.response?.data || err);
     }
   };
-
-  const filteredVehicles = vehicles.filter((vehicle) =>
-    vehicle.plate.toLowerCase().includes(searchPlate.toLowerCase())
-  );
 
   const getVehicleTypeLabel = (type: VehicleType) => {
     const labels = {
@@ -224,10 +214,23 @@ const VehicleLogs: React.FC = () => {
     });
   };
 
+  const filteredVehicles = vehicles.filter((vehicle) =>
+    vehicle.plate.toLowerCase().includes(searchPlate.toLowerCase())
+  );
+
+  const sortedVehicles = [...filteredVehicles].sort((a, b) => {
+    if (a.currentStatus === "parked" && b.currentStatus !== "parked") {
+      return -1;
+    }
+    if (a.currentStatus !== "parked" && b.currentStatus === "parked") {
+      return 1;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Formulario de Registro */}
         <div className=" shadow-lg rounded-2xl p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             Registrar Entrada de Vehículo
@@ -235,7 +238,6 @@ const VehicleLogs: React.FC = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* PLACA */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Placa
@@ -265,7 +267,6 @@ const VehicleLogs: React.FC = () => {
                 )}
               </div>
 
-              {/* TIPO */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Tipo de vehículo
@@ -290,24 +291,21 @@ const VehicleLogs: React.FC = () => {
               </div>
             </div>
 
-            {/* BOTÓN */}
             <button
               type="submit"
               disabled={!isValid || isSubmitting}
-              className="w-full bg-blue-600  rounded-lg py-2 hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Registrando..." : "Registrar Entrada"}
             </button>
           </form>
         </div>
 
-        {/* Tabla de Vehículos */}
         <div className=" rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">
             Registro de Vehículos
           </h1>
 
-          {/* Barra de búsqueda */}
           <div className="mb-6">
             <div className="relative">
               
@@ -316,13 +314,12 @@ const VehicleLogs: React.FC = () => {
                 placeholder="Buscar por placa..."
                 value={searchPlate}
                 onChange={(e) => setSearchPlate(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5  placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
             </div>
           </div>
 
-          {/* Estados de carga y error */}
           {loading && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -338,7 +335,6 @@ const VehicleLogs: React.FC = () => {
             </div>
           )}
 
-          {/* Tabla */}
           {!loading && !error && (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -365,8 +361,8 @@ const VehicleLogs: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className=" divide-y divide-gray-200">
-                  {filteredVehicles.length > 0 ? (
-                    filteredVehicles.map((vehicle) => (
+                  {sortedVehicles.length > 0 ? (
+                    sortedVehicles.map((vehicle) => (
                       <tr key={vehicle.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-900">
@@ -430,11 +426,9 @@ const VehicleLogs: React.FC = () => {
             </div>
           )}
 
-          {/* Información adicional */}
           {!loading && !error && (
             <div className="mt-4 text-sm text-gray-600">
-              Mostrando {filteredVehicles.length} de {vehicles.length}{" "}
-              vehículos
+              Mostrando {sortedVehicles.length} de {vehicles.length} vehículos
             </div>
           )}
         </div>
