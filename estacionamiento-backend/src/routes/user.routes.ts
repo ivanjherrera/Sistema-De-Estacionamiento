@@ -14,7 +14,7 @@ const router = Router();
 
 // RUTAS PROTEGIDAS (requieren autenticación)
 router.get("/me", authMiddleware, getMyProfile);
-router.put("/:id", authMiddleware, updateUsername);
+router.patch("/:id", authMiddleware, updateUsername);
 
 // RUTAS SOLO PARA ADMIN
 router.get("/", authMiddleware, adminMiddleware, getAllUsers);
