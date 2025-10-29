@@ -1,0 +1,65 @@
+// ==========================================
+// Sistema de Control de Estacionamiento
+// ==========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum VehicleType {
+  NORMAL
+  ESPECIAL
+  MOTOCICLETA
+}
+
+// ==========================================
+// MODELOS PRINCIPALES
+// ==========================================
+
+// Usuarios del sistema
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  role      Role      @default(USER)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  records   ParkingRecord[]
+}
+
+// Vehículos registrados
+model Vehicle {
+  id        Int             @id @default(autoincrement())
+  plate     String          @unique
+  type      VehicleType
+  createdAt DateTime        @default(now())
+  records   ParkingRecord[]
+}
+
+// Registros de entrada/salida
+model ParkingRecord {
+  id          Int       @id @default(autoincrement())
+  entryTime   DateTime
+  exitTime    DateTime?
+  totalFee    Float?
+  vehicleId   Int
+  userId      Int?
+  vehicle     Vehicle   @relation(fields: [vehicleId], references: [id])
+  user        User?     @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+}
